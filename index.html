@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Excalidraw View</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #f0f0f0; }
+        #container { width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+
+    <script type="module">
+        import { exportToSvg } from "https://unpkg.com/@excalidraw/utils@0.1.0-6/dist/excalidraw-utils.browser.js";
+
+        async function loadDrawing() {
+            // Fetch the local file you uploaded
+            const response = await fetch('./drawing.excalidraw');
+            const data = await response.json();
+
+            // Convert drawing data to SVG
+            const svg = await exportToSvg({
+                elements: data.elements,
+                appState: { ...data.appState, exportWithDarkMode: false },
+                files: data.files,
+            });
+
+            // Display it
+            document.getElementById('container').appendChild(svg);
+            svg.style.width = "100%";
+            svg.style.height = "100%";
+        }
+
+        loadDrawing();
+    </script>
+</body>
+</html>
