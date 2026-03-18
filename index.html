@@ -3,37 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Excalidraw View</title>
+    <title>Excalidraw Gallery</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #f0f0f0; }
-        #container { width: 100vw; height: 100vh; }
+        body { 
+            margin: 0; 
+            padding: 20px;
+            background: #f0f0f0; 
+            font-family: sans-serif;
+        }
+        h1 { text-align: center; color: #333; }
+        /* The Gallery Grid */
+        #gallery { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); 
+            gap: 20px; 
+            padding: 20px;
+        }
+        /* Individual Card Styling */
+        .drawing-card { 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+        .drawing-container { 
+            width: 100%; 
+            height: 300px; /* Adjust height for gallery view */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .file-label {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #666;
+        }
+        svg { max-width: 100%; max-height: 100%; }
     </style>
 </head>
 <body>
-    <div id="container"></div>
+
+    <h1>Drawing Gallery</h1>
+    <div id="gallery"></div>
 
     <script type="module">
         import { exportToSvg } from "https://unpkg.com/@excalidraw/utils@0.1.0-6/dist/excalidraw-utils.browser.js";
 
-        async function loadDrawing() {
-            // Fetch the local file you uploaded
-            const response = await fetch('./drawings/tender_defender.excalidraw');
-            const data = await response.json();
+        // 1. LIST YOUR FILES HERE
+        const drawings = [
+            './drawings/tender_defender.excalidraw'
+        ];
 
-            // Convert drawing data to SVG
-            const svg = await exportToSvg({
-                elements: data.elements,
-                appState: { ...data.appState, exportWithDarkMode: false },
-                files: data.files,
-            });
+        async function renderGallery() {
+            const galleryElement = document.getElementById('gallery');
 
-            // Display it
-            document.getElementById('container').appendChild(svg);
-            svg.style.width = "100%";
-            svg.style.height = "100%";
+            for (const filePath of drawings) {
+                try {
+                    // Create the UI elements for the card
+                    const card = document.createElement('div');
+                    card.className = 'drawing-card';
+
+                    const container = document.createElement('div');
+                    container.className = 'drawing-container';
+
+                    const label = document.createElement('div');
+                    label.className = 'file-label';
+                    label.textContent = filePath.split('/').pop(); // Shows filename
+
+                    card.appendChild(container);
+                    card.appendChild(label);
+                    galleryElement.appendChild(card);
+
+                    // Fetch and Convert
+                    const response = await fetch(filePath);
+                    const data = await response.json();
+
+                    const svg = await exportToSvg({
+                        elements: data.elements,
+                        appState: { ...data.appState, exportWithDarkMode: false },
+                        files: data.files,
+                    });
+
+                    container.appendChild(svg);
+                } catch (error) {
+                    console.error(`Error loading ${filePath}:`, error);
+                }
+            }
         }
 
-        loadDrawing();
+        renderGallery();
     </script>
 </body>
 </html>
