@@ -51,51 +51,59 @@
     <div id="gallery"></div>
 
     <script type="module">
-        import { exportToSvg } from "https://unpkg.com/@excalidraw/utils@0.1.0-6/dist/excalidraw-utils.browser.js";
-
-        // 1. LIST YOUR FILES HERE
-        const drawings = [
-            './drawings/tender_defender.excalidraw'
-        ];
+        // Use the ESM distribution from Skypack or esm.sh for better dependency resolution
+        import { exportToSvg } from "https://cdn.jsdelivr.net/npm/@excalidraw/utils@0.1.0-6/+esm";
+    
+        const drawings = ['./drawings/tender_defender.excalidraw'];
         // const drawings = import.meta.glob('./drawings/*.excalidraw');
-
+    
         async function renderGallery() {
             const galleryElement = document.getElementById('gallery');
-
+    
             for (const filePath of drawings) {
                 try {
-                    // Create the UI elements for the card
+                    // UI Elements Setup
                     const card = document.createElement('div');
                     card.className = 'drawing-card';
-
                     const container = document.createElement('div');
                     container.className = 'drawing-container';
-
                     const label = document.createElement('div');
                     label.className = 'file-label';
-                    label.textContent = filePath.split('/').pop(); // Shows filename
-
+                    label.textContent = filePath.split('/').pop();
+    
                     card.appendChild(container);
                     card.appendChild(label);
                     galleryElement.appendChild(card);
-
-                    // Fetch and Convert
+    
+                    // 1. Fetch the local file
                     const response = await fetch(filePath);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
-
+    
+                    // 2. Export to SVG
+                    // Note: We provide empty defaults to prevent the utility from crashing 
+                    // if the .excalidraw file is missing specific keys.
                     const svg = await exportToSvg({
-                        elements: data.elements,
-                        appState: { ...data.appState, exportWithDarkMode: false },
-                        files: data.files,
+                        elements: data.elements || [],
+                        appState: { 
+                            ...data.appState, 
+                            exportWithDarkMode: false,
+                            viewBackgroundColor: "#ffffff" 
+                        },
+                        files: data.files || {},
                     });
-
+    
                     container.appendChild(svg);
                 } catch (error) {
                     console.error(`Error loading ${filePath}:`, error);
+                    const errorMsg = document.createElement('p');
+                    errorMsg.style.color = 'red';
+                    errorMsg.textContent = "Failed to load drawing. Check console.";
+                    galleryElement.appendChild(errorMsg);
                 }
             }
         }
-
+    
         renderGallery();
     </script>
 </body>
